@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import SmartTaskAssigner from "./SmartTaskAssigner";
+import { getProjectsByOwner, getProjectDetail, createProject, addMemberToProject } from "../services/project.service";
 
 export default function ProjectManager({ user }) {
   const [projects, setProjects] = useState([]);
@@ -9,10 +10,8 @@ export default function ProjectManager({ user }) {
   const [selectedProjectDetail, setSelectedProjectDetail] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/projects?owner=${user.email}`)
-      .then((res) => res.json())
+    getProjectsByOwner(user.email)
       .then((data) => {
-        // Đảm bảo mỗi project đều có trường members là mảng
         setProjects(data.map(p => ({ ...p, members: p.members || [] })));
       });
   }, [user.email]);
@@ -20,41 +19,25 @@ export default function ProjectManager({ user }) {
   // Fetch chi tiết project khi chọn
   useEffect(() => {
     if (selectedProjectId) {
-      fetch(`http://localhost:5000/projects/${selectedProjectId}`)
-        .then(res => res.json())
+      getProjectDetail(selectedProjectId)
         .then(data => setSelectedProjectDetail(data));
     } else {
       setSelectedProjectDetail(null);
     }
   }, [selectedProjectId]);
 
-  const createProject = async () => {
+  const createProjectHandler = async () => {
     if (!newProjectName.trim()) return;
-    const res = await fetch("http://localhost:5000/projects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newProjectName, owner: user.email }),
-    });
-    const project = await res.json();
+    const project = await createProject(newProjectName, user.email);
     setProjects([...projects, { ...project, members: [user.email] }]);
     setNewProjectName("");
   };
 
   const addMember = async (projectId) => {
     if (!newMemberEmail.trim()) return;
-    const res = await fetch(`http://localhost:5000/projects/${projectId}/members`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: newMemberEmail }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.error || "Có lỗi xảy ra khi thêm thành viên!");
-      return;
-    }
+    const data = await addMemberToProject(projectId, newMemberEmail);
     // Fetch lại danh sách project để cập nhật members mới nhất
-    fetch(`http://localhost:5000/projects?owner=${user.email}`)
-      .then((res) => res.json())
+    getProjectsByOwner(user.email)
       .then((data) => {
         setProjects(data.map(p => ({ ...p, members: p.members || [] })));
       });
@@ -84,25 +67,23 @@ export default function ProjectManager({ user }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200 mb-6">
-      <h2 className="text-2xl font-bold text-indigo-700 mb-4">🛠️ Quản lý Dự án</h2>
-
+    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 mb-8 transition-all duration-200">
+      <h2 className="text-2xl font-bold text-indigo-700 mb-4 flex items-center gap-2">🛠️ Quản lý Dự án</h2>
       {/* Tạo dự án */}
       <div className="flex gap-2 mb-6">
         <input
-          className="input flex-1"
+          className="input flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
           placeholder="Nhập tên dự án"
           value={newProjectName}
           onChange={(e) => setNewProjectName(e.target.value)}
         />
         <button
-          onClick={createProject}
-          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+          onClick={createProjectHandler}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-all duration-200"
         >
           ➕ Tạo dự án
         </button>
       </div>
-
       {/* Danh sách dự án */}
       {projects.length === 0 ? (
         <p className="text-gray-500">Chưa có dự án nào.</p>
@@ -113,7 +94,7 @@ export default function ProjectManager({ user }) {
             return (
               <li
                 key={project.id}
-                className={`p-4 bg-gray-50 rounded border hover:shadow transition ${selectedProjectId === project.id ? 'border-indigo-500' : ''}`}
+                className={`p-4 bg-gray-50 rounded-xl border hover:shadow-lg transition-all duration-200 ${selectedProjectId === project.id ? 'border-indigo-500' : ''}`}
               >
                 <div className="flex justify-between items-center mb-2">
                   <div>
@@ -122,7 +103,7 @@ export default function ProjectManager({ user }) {
                       👑 Chủ dự án: {project.owner}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-4">
                     <button
                       onClick={() => setSelectedProjectId(selectedProjectId === project.id ? null : project.id)}
                       className="text-blue-600 hover:underline"
@@ -138,20 +119,19 @@ export default function ProjectManager({ user }) {
                     </button>
                   </div>
                 </div>
-
                 {/* Form thêm thành viên */}
                 {selectedProjectId === project.id && (
                   <div className="mt-3">
                     <div className="flex gap-2 mb-2">
                       <input
-                        className="input flex-1"
+                        className="input flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-300"
                         placeholder="Email thành viên"
                         value={newMemberEmail}
                         onChange={(e) => setNewMemberEmail(e.target.value)}
                       />
                       <button
                         onClick={() => addMember(project.id)}
-                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition-all duration-200"
                       >
                         ➕ Thêm
                       </button>
@@ -172,7 +152,7 @@ export default function ProjectManager({ user }) {
       )}
       {/* Hiển thị chi tiết project khi đã chọn */}
       {selectedProjectDetail && (
-        <div className="mt-6 p-4 bg-indigo-50 rounded border border-indigo-200">
+        <div className="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-200">
           <h4 className="font-bold text-indigo-700 text-lg mb-2">Chi tiết dự án</h4>
           <div><b>Tên dự án:</b> {selectedProjectDetail.name}</div>
           <div><b>Chủ dự án:</b> {selectedProjectDetail.owner}</div>

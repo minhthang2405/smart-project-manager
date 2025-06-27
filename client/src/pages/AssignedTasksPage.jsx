@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getAssignedTasks } from "../services/task.service";
 
 export default function AssignedTasksPage({ user }) {
   const [tasks, setTasks] = useState([]);
@@ -6,12 +7,12 @@ export default function AssignedTasksPage({ user }) {
 
   useEffect(() => {
     // Lấy các task do user này giao (owner là user.email)
-    fetch(`http://localhost:5000/tasks/assigned?owner=${user.email}`)
-      .then((res) => res.json())
+    getAssignedTasks(user.email)
       .then((data) => {
         setTasks(data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, [user.email]);
 
   const now = new Date();
@@ -19,8 +20,8 @@ export default function AssignedTasksPage({ user }) {
   const uncompletedTasks = tasks.filter(t => t.status !== "Hoàn thành");
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
-      <h2 className="text-2xl font-bold text-indigo-700 mb-4">🗂️ Quản lý Task đã giao</h2>
+    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 mt-6 transition-all duration-200">
+      <h2 className="text-2xl font-bold text-indigo-700 mb-4 flex items-center gap-2">🗂️ Quản lý Task đã giao</h2>
       {loading ? (
         <div>Đang tải...</div>
       ) : tasks.length === 0 ? (
@@ -33,7 +34,7 @@ export default function AssignedTasksPage({ user }) {
               const deadline = task.deadline ? new Date(task.deadline) : null;
               const isLate = deadline && now > deadline;
               return (
-                <li key={task.id} className="p-4 bg-gray-50 rounded border hover:shadow">
+                <li key={task.id} className="p-4 bg-gray-50 rounded-xl border hover:shadow-lg transition-all duration-200">
                   <h3 className="text-lg font-semibold">{task.title}</h3>
                   <p className="text-sm text-gray-600">
                     Người nhận: <strong>{task.assignee}</strong>
@@ -55,7 +56,7 @@ export default function AssignedTasksPage({ user }) {
               <li className="text-gray-500">Chưa có task nào hoàn thành.</li>
             ) : (
               completedTasks.map((task) => (
-                <li key={task.id} className="p-4 bg-green-50 rounded border hover:shadow">
+                <li key={task.id} className="p-4 bg-green-50 rounded-xl border hover:shadow-lg transition-all duration-200">
                   <h3 className="text-lg font-semibold">{task.title}</h3>
                   <p className="text-sm text-gray-600">
                     Người nhận: <strong>{task.assignee}</strong>
@@ -71,4 +72,4 @@ export default function AssignedTasksPage({ user }) {
       )}
     </div>
   );
-} 
+}

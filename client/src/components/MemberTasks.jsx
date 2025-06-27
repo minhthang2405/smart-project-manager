@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getTasksByEmail, markTaskComplete } from "../services/member-task.service";
 
 function ConfirmModal({ open, onConfirm, onCancel }) {
   if (!open) return null;
@@ -9,7 +10,7 @@ function ConfirmModal({ open, onConfirm, onCancel }) {
           <span className="text-yellow-400 text-3xl mr-2">⚠️</span>
           <h3 className="text-xl font-bold text-gray-800">Xác nhận hoàn thành</h3>
         </div>
-        <p className="mb-6 text-gray-700 leading-relaxed">Bạn có chắc chắn muốn đánh dấu <span className="font-semibold text-blue-700">hoàn thành</span>?<br/>Sau khi xác nhận sẽ <span className="font-semibold text-red-600">không thể quay lại</span> trạng thái chưa hoàn thành!</p>
+        <p className="mb-6 text-gray-700 leading-relaxed">Bạn có chắc chắn muốn đánh dấu <span className="font-semibold text-blue-700">hoàn thành</span>?<br />Sau khi xác nhận sẽ <span className="font-semibold text-red-600">không thể quay lại</span> trạng thái chưa hoàn thành!</p>
         <div className="flex justify-end gap-3">
           <button onClick={onCancel} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition">Huỷ</button>
           <button onClick={onConfirm} className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition">Xác nhận</button>
@@ -30,9 +31,7 @@ export default function MemberTasks({ user }) {
   const [modalTaskId, setModalTaskId] = useState(null);
 
   const fetchTasks = () => {
-    fetch(`http://localhost:5000/tasks?email=${user.email}`)
-      .then((res) => res.json())
-      .then(setTasks);
+    getTasksByEmail(user.email).then(setTasks);
   };
 
   useEffect(() => {
@@ -45,11 +44,7 @@ export default function MemberTasks({ user }) {
 
   const handleModalConfirm = async () => {
     if (!modalTaskId) return;
-    await fetch(`http://localhost:5000/tasks/${modalTaskId}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "Hoàn thành" }),
-    });
+    await markTaskComplete(modalTaskId);
     setModalTaskId(null);
     fetchTasks();
   };
@@ -59,13 +54,11 @@ export default function MemberTasks({ user }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
-      <h2 className="text-2xl font-bold text-indigo-700 mb-4">
+    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 transition-all duration-200">
+      <h2 className="text-2xl font-bold text-indigo-700 mb-4 flex items-center gap-2">
         📋 Công việc của bạn
       </h2>
-
       <ConfirmModal open={!!modalTaskId} onConfirm={handleModalConfirm} onCancel={handleModalCancel} />
-
       {tasks.length === 0 ? (
         <p className="text-gray-500">Bạn chưa được giao công việc nào.</p>
       ) : (
@@ -73,24 +66,14 @@ export default function MemberTasks({ user }) {
           {tasks.map((task) => (
             <li
               key={task.id}
-              className="p-4 bg-gray-50 rounded border hover:shadow"
+              className="p-4 bg-gray-50 rounded-xl border hover:shadow-lg transition-all duration-200"
             >
               <h3 className="text-lg font-semibold">{task.title}</h3>
               <p className="text-sm text-gray-600">
-                Độ khó: <strong>{task.difficulty}</strong> – Thời gian dự kiến:{" "}
-                {task.estimatedTime}
+                Độ khó: <strong>{task.difficulty}</strong> – Thời gian dự kiến: {task.estimatedTime}
               </p>
               <p className="text-sm text-gray-600 mt-1">
-                Trạng thái:{" "}
-                <span
-                  className={`font-medium ${
-                    task.status === "Hoàn thành"
-                      ? "text-green-600"
-                      : "text-yellow-600"
-                  }`}
-                >
-                  {task.status}
-                </span>
+                Trạng thái: <span className={`font-medium ${task.status === "Hoàn thành" ? "text-green-600" : "text-yellow-600"}`}>{task.status}</span>
               </p>
               {task.status !== "Hoàn thành" && (
                 <button

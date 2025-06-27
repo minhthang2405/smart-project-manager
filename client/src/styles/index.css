@@ -8,6 +8,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -18,6 +19,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -29,6 +31,44 @@
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+/* Custom Input Styling */
+.input {
+  @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200;
+}
+
+.input:disabled {
+  @apply bg-gray-100 cursor-not-allowed;
+}
+
+/* Custom Form Styling */
+.form-group {
+  @apply mb-4;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.form-button {
+  @apply px-4 py-2 font-medium rounded-md transition-colors duration-200;
+}
+
+.form-button-primary {
+  @apply bg-indigo-600 text-white hover:bg-indigo-700;
+}
+
+.form-button-secondary {
+  @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+}
+
+.form-button-danger {
+  @apply bg-red-600 text-white hover:bg-red-700;
+}
+
+.form-button-success {
+  @apply bg-green-600 text-white hover:bg-green-700;
 }
 
 /* Custom Card Styling */
@@ -56,12 +96,10 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent);
   transition: 0.5s;
 }
 
@@ -83,16 +121,14 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.2) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.2) 75%,
-    transparent 75%,
-    transparent
-  );
+  background: linear-gradient(45deg,
+      rgba(255, 255, 255, 0.2) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.2) 75%,
+      transparent 75%,
+      transparent);
   background-size: 20px 20px;
   animation: move 2s linear infinite;
 }
@@ -101,6 +137,7 @@
   0% {
     background-position: 0 0;
   }
+
   100% {
     background-position: 20px 20px;
   }
@@ -120,4 +157,25 @@
 .status-chưa-bắt-đầu {
   background-color: #fee2e2;
   color: #b91c1c;
+}
+
+/* Message Boxes */
+.message-box {
+  @apply p-3 rounded mb-4 border;
+}
+
+.message-error {
+  @apply bg-red-50 text-red-700 border-red-200;
+}
+
+.message-success {
+  @apply bg-green-50 text-green-700 border-green-200;
+}
+
+.message-info {
+  @apply bg-blue-50 text-blue-700 border-blue-200;
+}
+
+.message-warning {
+  @apply bg-amber-50 text-amber-700 border-amber-200;
 }
