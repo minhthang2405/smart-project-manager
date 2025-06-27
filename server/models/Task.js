@@ -7,10 +7,22 @@ const Task = sequelize.define('Task', {
   difficulty: DataTypes.STRING,
   estimatedTime: DataTypes.STRING,
   status: { type: DataTypes.STRING, defaultValue: 'Chưa hoàn thành' },
-  assignee: DataTypes.STRING, // email người nhận task
-  projectId: DataTypes.INTEGER,
-  deadline: DataTypes.DATE, // thời hạn hoàn thành
-  completedAt: DataTypes.DATE, // thời điểm hoàn thành
+  assignee: {
+    type: DataTypes.STRING,
+    references: {
+      model: 'Users',
+      key: 'email'
+    }
+  },
+  projectId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'Projects',
+      key: 'id'
+    }
+  },
+  deadline: DataTypes.DATE,
+  completedAt: DataTypes.DATE,
 });
 
-export default Task; 
+export default Task;
