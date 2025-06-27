@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { getProjectMembers, getUserSkill } from "../services/smart-task.service";
+import { useAssignTask } from "../hooks/useAssignTask";
 
 const SKILL_MAP = {
   Frontend: "frontend",
@@ -20,47 +22,38 @@ export default function SmartTaskAssigner({ projectId }) {
   const [assignee, setAssignee] = useState("");
   const [suggested, setSuggested] = useState(null);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("error");
   const [members, setMembers] = useState([]);
   const [memberSkills, setMemberSkills] = useState({});
 
-  console.log("projectId truyền vào SmartTaskAssigner:", projectId);
+  const {
+    assignTask: assignTaskApi,
+    loading: assigning,
+  } = useAssignTask();
 
-  // Lấy danh sách thành viên của project
   useEffect(() => {
     if (!projectId) return;
-    fetch(`http://localhost:5000/projects/${projectId}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          setMembers([]);
-          setMessage("Không tìm thấy dự án hoặc dự án đã bị xóa.");
-          return null;
-        }
-        return res.json();
+    setMessage("Đang tải thông tin dự án...");
+    setMessageType("info");
+
+    getProjectMembers(projectId)
+      .then((members) => {
+        setMembers(members);
+        setMessage("");
       })
-      .then((project) => {
-        if (project && project.members) {
-          setMembers(project.members);
-        } else {
-          setMembers([]);
-        }
-      })
-      .catch((err) => {
+      .catch(() => {
         setMembers([]);
         setMessage("Lỗi khi lấy thông tin dự án.");
+        setMessageType("error");
       });
   }, [projectId]);
 
-  // Lấy điểm skill của từng thành viên
   useEffect(() => {
     if (members.length === 0) return;
+
     Promise.all(
       members.map((email) =>
-        fetch(`http://localhost:5000/users/${email}`)
-          .then((res) => res.json())
-          .then((data) => {
-            console.log('User:', data);
-            return { email, ...data };
-          })
+        getUserSkill(email).then((data) => ({ email, ...data }))
       )
     ).then((arr) => {
       const skills = {};
@@ -72,6 +65,12 @@ export default function SmartTaskAssigner({ projectId }) {
   }, [members]);
 
   const suggestMember = () => {
+    if (members.length === 0) {
+      setMessage("Không có thành viên nào trong dự án.");
+      setMessageType("error");
+      return;
+    }
+
     const skillKey = SKILL_MAP[mainSkill] || "frontend";
     const sorted = members
       .map((email) => ({
@@ -80,68 +79,102 @@ export default function SmartTaskAssigner({ projectId }) {
         name: memberSkills[email]?.name || email,
       }))
       .sort((a, b) => b.score - a.score);
-    setSuggested(sorted[0]);
-    setAssignee(sorted[0]?.email || "");
+
+    if (sorted.length > 0) {
+      setSuggested(sorted[0]);
+      setAssignee(sorted[0]?.email || "");
+      setMessage("");
+    } else {
+      setMessage("Không tìm thấy thành viên phù hợp.");
+      setMessageType("error");
+    }
   };
 
   const assignTask = async () => {
+    setMessage("");
+
     if (!projectId) {
       setMessage("Bạn phải chọn dự án trước khi giao task!");
+      setMessageType("error");
       return;
     }
-    if (!taskName || !assignee) {
-      setMessage("Vui lòng nhập đầy đủ thông tin task và email người nhận!");
+
+    if (!taskName) {
+      setMessage("Vui lòng nhập tên công việc!");
+      setMessageType("error");
       return;
     }
-    const res = await fetch(`http://localhost:5000/projects/${projectId}/tasks`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: taskName,
+
+    if (!assignee) {
+      setMessage("Vui lòng chọn người nhận task!");
+      setMessageType("error");
+      return;
+    }
+
+    try {
+      await assignTaskApi({
+        projectId,
+        taskName,
         difficulty,
         estimatedTime,
         assignee,
         deadline,
-      }),
-    });
-    if (res.ok) setMessage("Đã giao task và gửi mail thành công!");
-    else setMessage("Lỗi khi giao task!");
+      });
+
+      setMessage("🎉 Giao task thành công và đã gửi email!");
+      setMessageType("success");
+
+      // Reset form
+      setTaskName("");
+      setMainSkill("Frontend");
+      setDifficulty("Trung bình");
+      setEstimatedTime("");
+      setDeadline("");
+      setAssignee("");
+      setSuggested(null);
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      setMessage("Lỗi khi giao task: " + (err.message || "Không xác định"));
+      setMessageType("error");
+    }
   };
 
-  if (!projectId) {
-    return <div className="text-red-600 font-semibold mt-4">Bạn phải chọn dự án trước khi giao task!</div>;
-  }
-
-  if (members.length === 0) {
-    return (
-      <div className="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
-        <h2 className="text-2xl font-bold text-indigo-700 mb-4">
-          🤖 Phân chia công việc bằng AI
-        </h2>
-        {message && <div className="text-red-600 mb-4">{message}</div>}
-        <div className="grid md:grid-cols-5 gap-4 mb-4">
+  const renderTaskForm = () => (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <div>
+          <label htmlFor="taskName" className="block text-sm font-medium text-gray-700 mb-1">Tên công việc:</label>
           <input
-            className="input"
-            placeholder="Tên công việc"
+            id="taskName"
+            className="input w-full"
+            placeholder="Nhập tên công việc"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
           />
+        </div>
+
+        <div>
+          <label htmlFor="mainSkill" className="block text-sm font-medium text-gray-700 mb-1">Kỹ năng chính:</label>
           <select
-            className="input"
+            id="mainSkill"
+            className="input w-full"
             value={mainSkill}
             onChange={(e) => setMainSkill(e.target.value)}
           >
-            <option>Frontend</option>
-            <option>Backend</option>
-            <option>AI</option>
-            <option>Devops</option>
-            <option>Mobile</option>
-            <option>UXUI</option>
-            <option>Testing</option>
-            <option>Management</option>
+            {Object.keys(SKILL_MAP).map((skill) => (
+              <option key={skill}>{skill}</option>
+            ))}
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 mb-1">Độ khó:</label>
           <select
-            className="input"
+            id="difficulty"
+            className="input w-full"
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
           >
@@ -149,35 +182,57 @@ export default function SmartTaskAssigner({ projectId }) {
             <option>Trung bình</option>
             <option>Khó</option>
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="estimatedTime" className="block text-sm font-medium text-gray-700 mb-1">Thời gian dự kiến:</label>
           <input
-            className="input"
-            placeholder="Thời gian dự kiến"
+            id="estimatedTime"
+            className="input w-full"
+            placeholder="Ví dụ: 3 ngày"
             value={estimatedTime}
             onChange={(e) => setEstimatedTime(e.target.value)}
           />
+        </div>
+
+        <div>
+          <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-1">Thời hạn:</label>
           <input
-            className="input"
+            id="deadline"
+            className="input w-full"
             type="datetime-local"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            title="Chọn thời hạn hoàn thành"
           />
         </div>
-        <button
-          onClick={suggestMember}
-          className="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700"
-        >
-          Đề xuất người phù hợp
-        </button>
-        {suggested && (
-          <div className="mt-4 text-lg">
-            🔍 Gợi ý: <strong>{suggested.name}</strong> ({suggested.email})<br/>
+
+        <div className="flex items-end">
+          <button
+            onClick={suggestMember}
+            className="bg-indigo-600 text-white w-full px-4 py-2 rounded hover:bg-indigo-700 transition-colors"
+          >
+            Đề xuất người phù hợp
+          </button>
+        </div>
+      </div>
+
+      {suggested && (
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-lg">
+            🔍 <span className="font-medium">Gợi ý:</span> <strong>{suggested.name}</strong> ({suggested.email})
+          </p>
+          <p>
             Kỹ năng {mainSkill}: <span className="font-bold text-indigo-700">{suggested.score}/10</span>
-          </div>
-        )}
-        <div className="mt-4 flex gap-2 items-center">
+          </p>
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-col sm:flex-row gap-2">
+        <div className="flex-grow">
+          <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-1">Người nhận task:</label>
           <select
-            className="input"
+            id="assignee"
+            className="input w-full"
             value={assignee}
             onChange={(e) => setAssignee(e.target.value)}
           >
@@ -188,101 +243,40 @@ export default function SmartTaskAssigner({ projectId }) {
               </option>
             ))}
           </select>
+        </div>
+        <div className="flex items-end">
           <button
             onClick={assignTask}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            disabled={assigning}
+            className={`px-6 py-2 rounded font-medium transition-colors ${assigning ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"} text-white w-full sm:w-auto`}
           >
-            Giao task
+            {assigning ? "Đang xử lý..." : "Giao task"}
           </button>
         </div>
-        {message && <div className="mt-2 text-blue-600">{message}</div>}
       </div>
-    );
-  }
+    </>
+  );
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow border border-gray-200 mt-6">
-      <h2 className="text-2xl font-bold text-indigo-700 mb-4">
-        🤖 Phân chia công việc bằng AI
-      </h2>
-      {message && <div className="text-red-600 mb-4">{message}</div>}
-      <div className="grid md:grid-cols-5 gap-4 mb-4">
-        <input
-          className="input"
-          placeholder="Tên công việc"
-          value={taskName}
-          onChange={(e) => setTaskName(e.target.value)}
-        />
-        <select
-          className="input"
-          value={mainSkill}
-          onChange={(e) => setMainSkill(e.target.value)}
-        >
-          <option>Frontend</option>
-          <option>Backend</option>
-          <option>AI</option>
-          <option>Devops</option>
-          <option>Mobile</option>
-          <option>UXUI</option>
-          <option>Testing</option>
-          <option>Management</option>
-        </select>
-        <select
-          className="input"
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
-        >
-          <option>Dễ</option>
-          <option>Trung bình</option>
-          <option>Khó</option>
-        </select>
-        <input
-          className="input"
-          placeholder="Thời gian dự kiến"
-          value={estimatedTime}
-          onChange={(e) => setEstimatedTime(e.target.value)}
-        />
-        <input
-          className="input"
-          type="datetime-local"
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
-          title="Chọn thời hạn hoàn thành"
-        />
-      </div>
-      <button
-        onClick={suggestMember}
-        className="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700"
-      >
-        Đề xuất người phù hợp
-      </button>
-      {suggested && (
-        <div className="mt-4 text-lg">
-          🔍 Gợi ý: <strong>{suggested.name}</strong> ({suggested.email})<br/>
-          Kỹ năng {mainSkill}: <span className="font-bold text-indigo-700">{suggested.score}/10</span>
+    <>
+      {message && (
+        <div className={`p-3 rounded mb-4 ${messageType === "error"
+          ? "bg-red-50 text-red-700 border border-red-200"
+          : messageType === "success"
+            ? "bg-green-50 text-green-700 border border-green-200"
+            : "bg-blue-50 text-blue-700 border border-blue-200"
+          }`}>
+          {message}
         </div>
       )}
-      <div className="mt-4 flex gap-2 items-center">
-        <select
-          className="input"
-          value={assignee}
-          onChange={(e) => setAssignee(e.target.value)}
-        >
-          <option value="">-- Chọn người nhận --</option>
-          {members.map(email => (
-            <option key={email} value={email}>
-              {memberSkills[email]?.name || email} ({email})
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={assignTask}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Giao task
-        </button>
-      </div>
-      {message && <div className="mt-2 text-blue-600">{message}</div>}
-    </div>
+
+      {!projectId ? null : members.length === 0 ? (
+        <div className="text-amber-600 font-medium p-4 bg-amber-50 rounded-lg border border-amber-200">
+          Dự án chưa có thành viên nào hoặc đang tải thông tin...
+        </div>
+      ) : (
+        renderTaskForm()
+      )}
+    </>
   );
 }

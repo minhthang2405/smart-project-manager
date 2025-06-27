@@ -3,6 +3,7 @@ import ProjectManager from "./ProjectManager";
 import MemberTasks from "./MemberTasks";
 import SmartTaskAssigner from "./SmartTaskAssigner";
 import AssignedTasksPage from "../pages/AssignedTasksPage";
+import { getUserByEmail, updateUserSkills } from "../services/user.service";
 
 const SKILL_FIELDS = [
   "frontend", "backend", "ai", "devops", "mobile", "uxui", "testing", "management"
@@ -15,12 +16,12 @@ function UserSkillForm({ user, onSaved }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`http://localhost:5000/users/${user.email}`)
-      .then(res => res.json())
+    getUserByEmail(user.email)
       .then(data => {
         setSkills(SKILL_FIELDS.reduce((acc, f) => ({ ...acc, [f]: data[f] ?? 0 }), {}));
         setLoading(false);
-      });
+      })
+      .catch(() => setError("Lỗi khi tải thông tin skill!"));
   }, [user.email]);
 
   const handleChange = (field, value) => {
@@ -31,13 +32,12 @@ function UserSkillForm({ user, onSaved }) {
     e.preventDefault();
     setSaving(true);
     setError("");
-    const res = await fetch(`http://localhost:5000/users/${user.email}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(skills),
-    });
-    if (res.ok) onSaved();
-    else setError("Lỗi khi lưu điểm skill!");
+    try {
+      await updateUserSkills(user.email, skills);
+      onSaved();
+    } catch (err) {
+      setError("Lỗi khi lưu điểm skill!");
+    }
     setSaving(false);
   };
 
@@ -71,38 +71,27 @@ function UserSkillForm({ user, onSaved }) {
   );
 }
 
-export default function Dashboard({ user, onLogout }) {
-  const [showSkillForm, setShowSkillForm] = useState(false);
-  const [userSkillOk, setUserSkillOk] = useState(false);
-
+export default function Dashboard({ user, onLogout, showSkillForm, setShowSkillForm }) {
   useEffect(() => {
-    fetch(`http://localhost:5000/users/${user.email}`)
-      .then(res => res.json())
-      .then(data => {
-        // Nếu thiếu điểm hoặc điểm = 0 thì bắt nhập
-        const ok = SKILL_FIELDS.every(f => typeof data[f] === 'number' && data[f] > 0);
-        setUserSkillOk(ok);
-        setShowSkillForm(!ok);
-      });
-  }, [user.email]);
+    if (!showSkillForm) {
+      getUserByEmail(user.email)
+        .then(data => {
+          const ok = SKILL_FIELDS.every(f => typeof data[f] === 'number' && data[f] > 0);
+          setShowSkillForm(!ok);
+        })
+        .catch(() => setShowSkillForm(true));
+    }
+  }, [user.email, showSkillForm, setShowSkillForm]);
 
   if (showSkillForm) {
-    return <UserSkillForm user={user} onSaved={() => { setShowSkillForm(false); setUserSkillOk(true); }} />;
+    return <UserSkillForm user={user} onSaved={() => setShowSkillForm(false)} />;
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-gray-50 to-indigo-100">
+    <div className="min-h-screen p-6 bg-gradient-to-br from-gray-50 to-indigo-100 w-full">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-indigo-700">
-          👋 Xin chào, {user.email}
-        </h1>
         <div className="flex gap-2">
-          <button
-            onClick={onLogout}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Đăng xuất
-          </button>
+
           <button
             onClick={() => setShowSkillForm(true)}
             className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
