@@ -47,6 +47,9 @@ export default function MemberTasks({ user }) {
     await markTaskComplete(modalTaskId);
     setModalTaskId(null);
     fetchTasks();
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   const handleModalCancel = () => {
