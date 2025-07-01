@@ -4,10 +4,11 @@
   "description": "Backend for Smart Project Management",
   "main": "app.js",
   "scripts": {
-    "start": "node app-basic.js",
+    "start": "node app-debug.js",
     "start-full": "node app.js",
     "start-debug": "node app-debug.js",
     "start-simple": "node app-simple.js",
+    "start-basic": "node app-basic.js",
     "dev": "nodemon app.js",
     "init-db": "node init-db.js",
     "build": "echo 'No build step needed for backend'",
