@@ -52,14 +52,39 @@ const allowedOrigins = [
   // Production frontend URLs
   process.env.FRONTEND_URL,
   process.env.CLIENT_URL,
-  // Vercel preview and production domains
+  // Vercel domains
+  'https://smart-project-manager.vercel.app',
   /\.vercel\.app$/,
-  // Allow any subdomain of vercel app
   /https:\/\/.*\.vercel\.app$/
 ].filter(Boolean);
 
+console.log('🔧 CORS allowed origins:', allowedOrigins);
+
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    console.log('🌐 Request from origin:', origin);
+    
+    // Allow requests with no origin (mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is allowed
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return allowedOrigin === origin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
+      console.log('✅ Origin allowed:', origin);
+      return callback(null, true);
+    } else {
+      console.log('❌ Origin blocked:', origin);
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -128,6 +153,16 @@ app.get('/debug/db', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   }
+});
+
+// Debug CORS endpoint
+app.get('/debug/cors', (req, res) => {
+  res.json({
+    origin: req.headers.origin,
+    allowedOrigins: allowedOrigins,
+    headers: req.headers,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Routes

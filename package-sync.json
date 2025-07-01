@@ -1,0 +1,13 @@
+{
+  "name": "database-sync",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Sync Railway database to local MySQL",
+  "main": "sync-database.js",
+  "scripts": {
+    "sync": "node sync-database.js"
+  },
+  "dependencies": {
+    "mysql2": "^3.9.7"
+  }
+}

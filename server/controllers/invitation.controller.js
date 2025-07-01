@@ -195,13 +195,19 @@ export const completeProjectJoin = async (req, res) => {
     try {
         const { token, email } = req.body;
 
-        console.log('🔗 Complete project join:', { token: token?.slice(0, 8) + '...', email });
+        console.log('🔗 Complete project join request:', { 
+            token: token?.slice(0, 8) + '...', 
+            email,
+            timestamp: new Date().toISOString()
+        });
 
         if (!token || !email) {
+            console.log('❌ Missing required fields:', { token: !!token, email: !!email });
             return res.status(400).json({ error: 'Thiếu thông tin cần thiết' });
         }
 
-        // Tìm invitation đã được chấp nhận
+        // Tìm invitation
+        console.log('🔍 Looking for invitation...');
         const invitation = await ProjectInvitation.findOne({
             where: {
                 inviteToken: token,
@@ -213,11 +219,19 @@ export const completeProjectJoin = async (req, res) => {
             id: invitation.id,
             status: invitation.status,
             email: invitation.email,
-            projectId: invitation.projectId
+            projectId: invitation.projectId,
+            expiresAt: invitation.expiresAt
         } : 'None');
 
         if (!invitation) {
+            console.log('❌ No invitation found');
             return res.status(404).json({ error: 'Không tìm thấy lời mời hợp lệ' });
+        }
+
+        // Kiểm tra expiry
+        if (invitation.expiresAt && new Date() > invitation.expiresAt) {
+            console.log('❌ Invitation expired:', invitation.expiresAt);
+            return res.status(400).json({ error: 'Lời mời đã hết hạn' });
         }
 
         // Chấp nhận invitation nếu chưa được chấp nhận
@@ -226,39 +240,55 @@ export const completeProjectJoin = async (req, res) => {
             invitation.status = 'accepted';
             await invitation.save();
         } else if (invitation.status !== 'accepted' && invitation.status !== 'completed') {
+            console.log('❌ Invalid invitation status:', invitation.status);
             return res.status(400).json({ 
                 error: `Lời mời không ở trạng thái hợp lệ (${invitation.status})` 
             });
         }
 
-        // Kiểm tra user đã đăng nhập
+        // Kiểm tra user
+        console.log('👤 Checking user exists...');
         const user = await User.findByPk(email);
         if (!user) {
+            console.log('❌ User not found:', email);
             return res.status(404).json({ error: 'Người dùng chưa đăng ký' });
         }
+        console.log('✅ User found:', { email: user.email, name: user.name });
+
+        // Kiểm tra project
+        console.log('📋 Checking project exists...');
+        const project = await Project.findByPk(invitation.projectId);
+        if (!project) {
+            console.log('❌ Project not found:', invitation.projectId);
+            return res.status(404).json({ error: 'Dự án không tồn tại' });
+        }
+        console.log('✅ Project found:', { id: project.id, name: project.name });
 
         // Thêm vào dự án nếu chưa có
+        console.log('🔍 Checking existing membership...');
         const existingMember = await ProjectMember.findOne({
             where: { projectId: invitation.projectId, email: email }
         });
 
         if (!existingMember) {
             console.log('➕ Adding user to project...');
-            await ProjectMember.create({
+            const newMember = await ProjectMember.create({
                 projectId: invitation.projectId,
                 email: email
             });
+            console.log('✅ Member added:', { id: newMember.id, projectId: newMember.projectId, email: newMember.email });
         } else {
-            console.log('ℹ️ User already member of project');
+            console.log('ℹ️ User already member of project:', { id: existingMember.id });
         }
 
         // Cập nhật trạng thái invitation thành completed
+        console.log('🔄 Updating invitation status to completed...');
         invitation.status = 'completed';
         await invitation.save();
-
-        const project = await Project.findByPk(invitation.projectId);
+        console.log('✅ Invitation status updated');
 
         // Gửi thông báo cuối cho chủ dự án
+        console.log('📧 Sending completion notification...');
         try {
             await mailService.sendMail({
                 to: invitation.inviterEmail,
@@ -279,15 +309,16 @@ export const completeProjectJoin = async (req, res) => {
                 `
             });
         } catch (emailError) {
-            console.error('Lỗi gửi email thông báo:', emailError);
+            console.error('❌ Email notification failed:', emailError);
         }
 
-        console.log('✅ Project join completed successfully');
+        console.log('✅ Project join completed successfully for:', email);
 
         res.json({
             success: true,
             message: 'Tham gia dự án thành công!',
-            projectName: project.name
+            projectName: project.name,
+            email: email
         });
 
     } catch (error) {
