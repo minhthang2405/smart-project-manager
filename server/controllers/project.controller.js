@@ -62,8 +62,14 @@ export const addMember = async (req, res) => {
             expiresAt
         });
 
-        // Gửi email mời
-        const emailTemplate = mailService.generateInviteEmailTemplate(project.name, project.owner, inviteToken);
+        // Gửi email mời với production URL
+        const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+        const emailTemplate = mailService.generateInviteEmailTemplate(
+            project.name, 
+            project.owner, 
+            inviteToken,
+            clientUrl
+        );
         
         await mailService.sendMail({
             to: email,

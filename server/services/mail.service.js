@@ -43,7 +43,12 @@ export const sendMail = async ({ to, subject, text, html }) => {
     }
 };
 
-export const generateInviteEmailTemplate = (projectName, inviterEmail, inviteToken, baseUrl = 'http://localhost:5173') => {
+export const generateInviteEmailTemplate = (projectName, inviterEmail, inviteToken, baseUrl) => {
+    // Determine base URL based on environment
+    if (!baseUrl) {
+        baseUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+    }
+    
     return `
     <!DOCTYPE html>
     <html>
