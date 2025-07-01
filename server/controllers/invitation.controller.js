@@ -239,7 +239,7 @@ export const completeProjectJoin = async (req, res) => {
             console.log('⚠️ Invitation still pending, accepting it now...');
             invitation.status = 'accepted';
             await invitation.save();
-        } else if (invitation.status !== 'accepted' && invitation.status !== 'completed') {
+        } else if (invitation.status !== 'accepted') {
             console.log('❌ Invalid invitation status:', invitation.status);
             return res.status(400).json({ 
                 error: `Lời mời không ở trạng thái hợp lệ (${invitation.status})` 
@@ -281,9 +281,9 @@ export const completeProjectJoin = async (req, res) => {
             console.log('ℹ️ User already member of project:', { id: existingMember.id });
         }
 
-        // Cập nhật trạng thái invitation thành completed
-        console.log('🔄 Updating invitation status to completed...');
-        invitation.status = 'completed';
+        // Cập nhật trạng thái invitation thành accepted
+        console.log('🔄 Updating invitation status to accepted...');
+        invitation.status = 'accepted';
         await invitation.save();
         console.log('✅ Invitation status updated');
 
