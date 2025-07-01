@@ -1,14 +1,14 @@
-# Tell Nixpacks this is a Node.js project in server directory
+# Tell Nixpacks this is a Node.js project
 providers = ["node"]
 
 [phases.setup]
 nixPkgs = ["nodejs_18"]
 
 [phases.install]
-cmds = ["cd server && npm ci"]
+cmds = ["npm ci"]
 
 [phases.build]
 cmds = ["echo 'No build step needed'"]
 
 [start]
-cmd = "cd server && node app-basic.js"
+cmd = "npm start"
