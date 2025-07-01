@@ -1,4 +1,21 @@
-import nodemailer from 'nodemailer';
+import node    return nodemailer.createTransporter({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.EMAIL,
+            pass: process.env.PASSWORD,
+        },
+        tls: {
+            rejectUnauthorized: false
+        },
+        // Add additional options for better delivery
+        pool: true,
+        maxConnections: 1,
+        rateDelta: 20000, // 20 seconds between emails
+        rateLimit: 3 // max 3 emails per rateDelta
+    });nodemailer';
 import dotenv from 'dotenv';
 
 // Load environment variables

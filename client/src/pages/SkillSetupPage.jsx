@@ -11,9 +11,16 @@ function SkillSetupPage() {
   const [error, setError] = useState('');
 
   // Lấy thông tin từ URL params hoặc location state
-  const email = searchParams.get('email') || location.state?.email;
+  const invitationEmail = searchParams.get('email') || location.state?.email; // Email từ invitation
   const projectName = searchParams.get('projectName') || location.state?.projectName;
   const invitationToken = searchParams.get('token') || location.state?.token;
+  
+  // Lấy email thực của user đã login
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userEmail = currentUser.email; // Email thực của user đã login
+  
+  // Sử dụng email thực nếu có, fallback về invitation email
+  const email = userEmail || invitationEmail;
 
   if (!email) {
     return (

@@ -206,19 +206,20 @@ export const completeProjectJoin = async (req, res) => {
             return res.status(400).json({ error: 'Thiếu thông tin cần thiết' });
         }
 
-        // Tìm invitation
-        console.log('🔍 Looking for invitation...');
+        // Tìm invitation chỉ bằng token (không cần email match)
+        console.log('🔍 Looking for invitation by token...');
         const invitation = await ProjectInvitation.findOne({
             where: {
-                inviteToken: token,
-                email: email
+                inviteToken: token
+                // Không cần email filter vì user có thể login bằng email khác
             }
         });
 
         console.log('🔍 Found invitation:', invitation ? {
             id: invitation.id,
             status: invitation.status,
-            email: invitation.email,
+            originalEmail: invitation.email, // Email từ invitation
+            actualEmail: email, // Email user thực tế login
             projectId: invitation.projectId,
             expiresAt: invitation.expiresAt
         } : 'None');
@@ -287,8 +288,11 @@ export const completeProjectJoin = async (req, res) => {
         await invitation.save();
         console.log('✅ Invitation status updated');
 
-        // Gửi thông báo cuối cho chủ dự án
+        // Gửi thông báo cuối cho chủ dự án với email thực của user
         console.log('📧 Sending completion notification...');
+        console.log(`📧 Original invitation sent to: ${invitation.email}`);
+        console.log(`📧 Actual user joined with: ${email}`);
+        
         try {
             await mailService.sendMail({
                 to: invitation.inviterEmail,
@@ -302,6 +306,10 @@ export const completeProjectJoin = async (req, res) => {
                             <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
                                 <h3>📋 ${project.name}</h3>
                             </div>
+                            ${invitation.email !== email ? 
+                                `<p><small>💡 Lưu ý: Lời mời được gửi tới <strong>${invitation.email}</strong> nhưng thành viên đã tham gia bằng email <strong>${email}</strong></small></p>` 
+                                : ''
+                            }
                             <p>Bạn có thể bắt đầu giao công việc và sử dụng tính năng phân công thông minh.</p>
                             <p style="color: #666; font-size: 14px;">© 2025 Smart Project Management</p>
                         </div>
