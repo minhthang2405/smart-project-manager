@@ -63,7 +63,14 @@ export const addMember = async (req, res) => {
         });
 
         // Gửi email mời với production URL
-        const clientUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+        const clientUrl = process.env.NODE_ENV === 'production' 
+            ? (process.env.CLIENT_URL || process.env.FRONTEND_URL || 'https://smart-project-manager.vercel.app')
+            : 'http://localhost:5173';
+        
+        console.log('🔍 Email invitation URL:', clientUrl);
+        console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+        console.log('🔍 CLIENT_URL:', process.env.CLIENT_URL);
+        
         const emailTemplate = mailService.generateInviteEmailTemplate(
             project.name, 
             project.owner, 

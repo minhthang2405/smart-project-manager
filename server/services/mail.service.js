@@ -46,8 +46,18 @@ export const sendMail = async ({ to, subject, text, html }) => {
 export const generateInviteEmailTemplate = (projectName, inviterEmail, inviteToken, baseUrl) => {
     // Determine base URL based on environment
     if (!baseUrl) {
-        baseUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+        if (process.env.NODE_ENV === 'production') {
+            // Force production URL
+            baseUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'https://smart-project-manager.vercel.app';
+        } else {
+            baseUrl = 'http://localhost:5173';
+        }
     }
+    
+    console.log('🔍 Email generation debug:');
+    console.log('  NODE_ENV:', process.env.NODE_ENV);
+    console.log('  CLIENT_URL:', process.env.CLIENT_URL);
+    console.log('  Final baseUrl:', baseUrl);
     
     return `
     <!DOCTYPE html>
