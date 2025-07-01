@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Backend for Smart Project Management",
   "main": "app.js",
+  "type": "module",
   "scripts": {
-    "start": "node app-debug.js",
-    "start-full": "node app.js",
+    "start": "node app.js",
     "start-debug": "node app-debug.js",
     "start-simple": "node app-simple.js",
     "start-basic": "node app-basic.js",

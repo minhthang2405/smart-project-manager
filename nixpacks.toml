@@ -5,10 +5,10 @@ providers = ["node"]
 nixPkgs = ["nodejs_18"]
 
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["cd server && npm ci"]
 
 [phases.build]
-cmds = ["echo 'No build step needed'"]
+cmds = ["echo 'No build step needed for server'"]
 
 [start]
 cmd = "npm start"

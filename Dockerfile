@@ -4,20 +4,17 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy server package files first for better caching
+COPY server/package*.json ./server/
 
-# Install dependencies
-RUN npm ci --only=production
+# Install server dependencies
+RUN cd server && npm ci --only=production
 
-# Copy basic app
-COPY app-basic.js ./
-
-# List files to debug
-RUN ls -la
+# Copy all source code
+COPY . .
 
 # Expose port
 EXPOSE 3000
 
-# Start the application
+# Start the full server
 CMD ["npm", "start"]

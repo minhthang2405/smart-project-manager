@@ -2,18 +2,15 @@
   "name": "smart-project-manager",
   "version": "1.0.0",
   "description": "Smart Project Management System",
-  "main": "app-basic.js",
+  "main": "server/app.js",
   "scripts": {
     "build": "cd server && npm ci",
-    "start": "node app-basic.js",
-    "start-server": "cd server && npm start",
-    "dev": "cd server && npm run dev"
-  },
-  "dependencies": {
-    "express": "^4.19.2"
+    "start": "cd server && node app.js",
+    "dev": "cd server && npm run dev",
+    "init-db": "cd server && node init-db.js"
   },
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=18.0.0",
     "npm": ">=8.0.0"
   }
 }
