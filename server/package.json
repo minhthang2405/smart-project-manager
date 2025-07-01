@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "init-db": "node init-db.js",
+    "build": "echo 'No build step needed for backend'"
   },
   "dependencies": {
     "cors": "^2.8.5",

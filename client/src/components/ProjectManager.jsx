@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import SmartTaskAssigner from "./SmartTaskAssigner";
+import ProjectInvitationStatus from "./ProjectInvitationStatus";
 import { getProjectsByOwner, getProjectDetail, createProject, addMemberToProject } from "../services/project.service";
 
 export default function ProjectManager({ user }) {
@@ -8,6 +9,8 @@ export default function ProjectManager({ user }) {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [selectedProjectDetail, setSelectedProjectDetail] = useState(null);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // "success", "error", "info"
 
   useEffect(() => {
     getProjectsByOwner(user.email)
@@ -34,55 +37,85 @@ export default function ProjectManager({ user }) {
   };
 
   const addMember = async (projectId) => {
-    if (!newMemberEmail.trim()) return;
-    const data = await addMemberToProject(projectId, newMemberEmail);
-    // Fetch lại danh sách project để cập nhật members mới nhất
-    getProjectsByOwner(user.email)
-      .then((data) => {
-        setProjects(data.map(p => ({ ...p, members: p.members || [] })));
-      });
-    setNewMemberEmail("");
-    setSelectedProjectId(null);
+    if (!newMemberEmail.trim()) {
+      setMessage("Vui lòng nhập email thành viên");
+      setMessageType("error");
+      return;
+    }
+
+    try {
+      const result = await addMemberToProject(projectId, newMemberEmail);
+      
+      // Fetch lại danh sách project để cập nhật members mới nhất
+      const updatedProjects = await getProjectsByOwner(user.email);
+      setProjects(updatedProjects.map(p => ({ ...p, members: p.members || [] })));
+      
+      setNewMemberEmail("");
+      setSelectedProjectId(null);
+      setMessage(result.message || "Gửi lời mời thành công!");
+      setMessageType("success");
+      
+    } catch (error) {
+      console.error("Lỗi khi thêm thành viên:", error);
+      setMessage(error.message);
+      setMessageType("error");
+    }
+    
+    // Xóa thông báo sau 5 giây
+    setTimeout(() => {
+      setMessage("");
+      setMessageType("");
+    }, 5000);
   };
 
   const getProjectNameById = (id) =>
     projects.find((p) => p.id === id)?.name || "Dự án không rõ";
 
-  const sendInviteEmail = async (memberEmail, projectName) => {
-    try {
-      const res = await fetch("http://localhost:5000/send-invite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          memberEmail,
-          projectName,
-          leaderEmail: user.email,
-        }),
-      });
-      const data = await res.json();
-      console.log("📨 Email:", data.message);
-    } catch (err) {
-      console.error("❌ Gửi email thất bại:", err);
-    }
-  };
-
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 mb-8 transition-all duration-200">
       <h2 className="text-2xl font-bold text-indigo-700 mb-4 flex items-center gap-2">🛠️ Quản lý Dự án</h2>
-      {/* Tạo dự án */}
-      <div className="flex gap-2 mb-6">
-        <input
-          className="input flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-          placeholder="Nhập tên dự án"
-          value={newProjectName}
-          onChange={(e) => setNewProjectName(e.target.value)}
-        />
-        <button
-          onClick={createProjectHandler}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-all duration-200"
-        >
-          ➕ Tạo dự án
-        </button>
+      
+      {/* Hiển thị thông báo */}
+      {message && (
+        <div className={`p-3 rounded mb-4 border ${
+          messageType === "success" 
+            ? "bg-green-50 text-green-700 border-green-200"
+            : messageType === "error"
+            ? "bg-red-50 text-red-700 border-red-200"
+            : "bg-blue-50 text-blue-700 border-blue-200"
+        }`}>
+          {message}
+        </div>
+      )}
+      {/* Tạo dự án mới */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl border border-indigo-100 mb-6">
+        <h3 className="text-lg font-semibold text-indigo-800 mb-4 flex items-center gap-2">
+          ✨ Tạo Dự Án Mới
+        </h3>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <input
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-400"
+              placeholder="Nhập tên dự án (ví dụ: Website Bán Hàng, Mobile App...)"
+              value={newProjectName}
+              onChange={(e) => setNewProjectName(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && createProjectHandler()}
+            />
+          </div>
+          <button
+            onClick={createProjectHandler}
+            disabled={!newProjectName.trim()}
+            className="bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-indigo-700 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 font-medium"
+          >
+            <span>🚀</span>
+            Tạo Dự Án
+          </button>
+        </div>
+        {newProjectName.trim() && (
+          <div className="mt-3 text-sm text-gray-600">
+            <span className="font-medium">Xem trước:</span> Dự án "{newProjectName}" sẽ được tạo với bạn là chủ dự án
+          </div>
+        )}
       </div>
       {/* Danh sách dự án */}
       {projects.length === 0 ? (
@@ -133,7 +166,7 @@ export default function ProjectManager({ user }) {
                         onClick={() => addMember(project.id)}
                         className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition-all duration-200"
                       >
-                        ➕ Thêm
+                        📧 Gửi lời mời
                       </button>
                     </div>
                     <ul className="ml-2 list-disc text-sm text-gray-700">
@@ -143,6 +176,7 @@ export default function ProjectManager({ user }) {
                         members.map((m, idx) => <li key={idx}>{m}</li>)
                       )}
                     </ul>
+                    <ProjectInvitationStatus projectId={project.id} />
                   </div>
                 )}
               </li>

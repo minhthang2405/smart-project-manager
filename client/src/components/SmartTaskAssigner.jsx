@@ -105,6 +105,12 @@ export default function SmartTaskAssigner({ projectId }) {
       return;
     }
 
+    if (!estimatedTime) {
+      setMessage("Vui lòng nhập thời gian dự kiến!");
+      setMessageType("error");
+      return;
+    }
+
     if (!assignee) {
       setMessage("Vui lòng chọn người nhận task!");
       setMessageType("error");
@@ -146,13 +152,16 @@ export default function SmartTaskAssigner({ projectId }) {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <div>
-          <label htmlFor="taskName" className="block text-sm font-medium text-gray-700 mb-1">Tên công việc:</label>
+          <label htmlFor="taskName" className="block text-sm font-medium text-gray-700 mb-1">
+            Tên công việc: <span className="text-red-500">*</span>
+          </label>
           <input
             id="taskName"
             className="input w-full"
             placeholder="Nhập tên công việc"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
+            required
           />
         </div>
 
@@ -185,13 +194,16 @@ export default function SmartTaskAssigner({ projectId }) {
         </div>
 
         <div>
-          <label htmlFor="estimatedTime" className="block text-sm font-medium text-gray-700 mb-1">Thời gian dự kiến:</label>
+          <label htmlFor="estimatedTime" className="block text-sm font-medium text-gray-700 mb-1">
+            Thời gian dự kiến: <span className="text-red-500">*</span>
+          </label>
           <input
             id="estimatedTime"
             className="input w-full"
-            placeholder="Ví dụ: 3 ngày"
+            placeholder="Ví dụ: 3 ngày, 1 tuần, 2 giờ"
             value={estimatedTime}
             onChange={(e) => setEstimatedTime(e.target.value)}
+            required
           />
         </div>
 

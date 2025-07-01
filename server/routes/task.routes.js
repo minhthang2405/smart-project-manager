@@ -1,19 +1,23 @@
 import express from 'express';
-import { createTask, getTasksByEmail, getAssignedTasks, updateTaskStatus } from '../controllers/task.controller.js';
-import nodemailer from 'nodemailer';
+import { 
+  createTask, 
+  getTasksByEmail, 
+  getAssignedTasks, 
+  updateTaskStatus,
+  getTasksByProjectAndUser,
+  getTaskStatsByUser 
+} from '../controllers/task.controller.js';
+
 const router = express.Router();
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
-    },
-});
-
-router.post('/projects/:id/tasks', (req, res) => createTask(req, res, transporter));
+// Không cần transporter nữa vì đã sử dụng mail service
+router.post('/projects/:id/tasks', createTask);
 router.get('/tasks', getTasksByEmail);
 router.get('/tasks/assigned', getAssignedTasks);
 router.patch('/tasks/:id/status', updateTaskStatus);
+
+// New routes for project-specific tasks
+router.get('/projects/:projectId/tasks/:email', getTasksByProjectAndUser);
+router.get('/tasks/stats/:email', getTaskStatsByUser);
 
 export default router;

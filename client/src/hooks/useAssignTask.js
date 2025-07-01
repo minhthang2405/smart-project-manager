@@ -1,5 +1,6 @@
 // useAssignTask.js - Custom hook để giao task cho project
 import { useState } from "react";
+import { API_BASE_URL } from '../config/api.js';
 
 export function useAssignTask() {
     const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ export function useAssignTask() {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/projects/${projectId}/tasks`, {
+            const res = await fetch(`${API_BASE_URL}/projects/${projectId}/tasks`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

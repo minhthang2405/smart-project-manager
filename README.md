@@ -7,47 +7,86 @@ Smart Project Management là một ứng dụng quản lý dự án thông minh 
 ## Tính năng chính
 
 - **Quản lý tài khoản**:
-  - Đăng ký, đăng nhập
+  - Đăng ký, đăng nhập với Google OAuth
   - Tự đánh giá điểm kỹ năng cá nhân (frontend, backend, AI, DevOps, mobile, UX/UI, testing, management)
+  - Cập nhật kỹ năng linh hoạt
 
 - **Quản lý dự án**:
-  - Tạo dự án mới
-  - Thêm thành viên vào dự án
-  - Quản lý thành viên và phân quyền
+  - Tạo dự án mới với giao diện thân thiện
+  - Gửi lời mời thành viên qua email
+  - Quản lý trạng thái lời mời (pending, accepted, declined)
+  - Xem danh sách thành viên và quyền hạn
 
 - **Phân công công việc thông minh**:
-  - Giao task với thông tin chi tiết (tên, kỹ năng yêu cầu, độ khó, deadline)
-  - Đề xuất người thực hiện phù hợp nhất dựa trên điểm kỹ năng
-  - Gửi thông báo email khi được giao task
+  - Tạo task với thông tin chi tiết (tên, mô tả, kỹ năng yêu cầu, độ khó, thời gian ước tính, deadline)
+  - **Smart Task Assignment**: AI đề xuất người thực hiện phù hợp nhất dựa trên điểm kỹ năng
+  - Gửi email thông báo tự động khi được giao task
 
 - **Theo dõi công việc**:
-  - Xem danh sách công việc được giao
-  - Cập nhật trạng thái công việc
-  - Thống kê tiến độ dự án
+  - **Assigned Tasks Manager**: Xem tất cả task đã giao với bộ lọc theo dự án, trạng thái, độ khó
+  - **Member Dashboard**: Xem task được giao và cập nhật trạng thái
+  - Thống kê tiến độ và thông báo task chưa hoàn thành
+  - Lịch sử hoàn thành công việc
+
+- **Giao diện thân thiện**:
+  - Responsive design với TailwindCSS
+  - Dark/Light theme support
+  - Notification system
+  - Modern UI/UX với icons và animations
 
 ## Cài đặt
 
 ### Yêu cầu hệ thống
 
 - Node.js (v14.0.0 trở lên)
-- MongoDB
+- MySQL Database
 - NPM hoặc Yarn
+- Gmail account (để gửi email mời)
 
 ### Cài đặt và chạy ứng dụng
 
 1. **Clone dự án**
-   ```
+   ```bash
    git clone https://github.com/yourusername/smart-project-management.git
    cd smart-project-management
    ```
 
 2. **Cài đặt dependencies cho server**
-   ```
+   ```bash
    cd server
    npm install
    ```
 
 3. **Cài đặt dependencies cho client**
+   ```bash
+   cd ../client
+   npm install
+   ```
+
+4. **Cấu hình database và environment**
+   ```bash
+   # Trong thư mục server
+   cp .env.example .env
+   # Sửa file .env với thông tin database và email của bạn
+   
+   # Khởi tạo database
+   npm run init-db
+   ```
+
+5. **Chạy ứng dụng**
+   ```bash
+   # Terminal 1: Chạy server
+   cd server
+   npm run dev
+   
+   # Terminal 2: Chạy client  
+   cd client
+   npm run dev
+   ```
+
+6. **Truy cập ứng dụng**
+   - Client: http://localhost:3000
+   - Server API: http://localhost:5000
    ```
    cd ../client
    npm install
@@ -149,10 +188,19 @@ smart-project-management/
 
 - **Backend**:
   - Node.js & Express (Server)
-  - MongoDB & Mongoose (Database)
+  - MySQL & Sequelize (Database)
   - JWT (Authentication)
   - Nodemailer (Email sending)
-  - bcrypt (Password hashing)
+  - Google OAuth (Authentication)
+
+## 🚀 Deployment
+
+Để deploy ứng dụng lên production, vui lòng xem hướng dẫn chi tiết tại [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+**Tóm tắt nhanh:**
+- **Server**: Railway, Heroku, hoặc VPS
+- **Client**: Vercel, Netlify, hoặc static hosting
+- **Database**: Railway MySQL, Heroku ClearDB, hoặc tự host
 
 ## Tính năng sẽ phát triển trong tương lai
 
@@ -161,10 +209,27 @@ smart-project-management/
 - Đánh giá hiệu suất thành viên sau khi hoàn thành task
 - Tích hợp với các nền tảng CI/CD và quản lý mã nguồn
 - Ứng dụng mobile cho iOS và Android
+- Real-time notifications với WebSocket
+- Advanced task dependency management
+- Time tracking và reporting
+
+## 🤝 Contributing
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 Support
+
+Nếu bạn gặp vấn đề hoặc có câu hỏi:
+- Tạo [Issue](https://github.com/yourusername/smart-manager/issues) trên GitHub
+- Email: support@smart-manager.com
 
 ## License
 
-Dự án này được phân phối dưới giấy phép MIT License.
+Dự án này được phân phối dưới giấy phép MIT License. Xem file [LICENSE](LICENSE) để biết thêm chi tiết.
 
 ---
 

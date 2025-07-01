@@ -1,5 +1,12 @@
 import express from 'express';
-import { createProject, addMember, getProjects, getProjectById } from '../controllers/project.controller.js';
+import { 
+  createProject, 
+  addMember, 
+  getProjects, 
+  getProjectById,
+  getJoinedProjects,
+  getUserProjectStats 
+} from '../controllers/project.controller.js';
 const router = express.Router();
 
 // Project routes
@@ -7,5 +14,9 @@ router.post('/', createProject);
 router.post('/:id/members', addMember);
 router.get('/', getProjects);
 router.get('/:id', getProjectById);
+
+// Member routes
+router.get('/joined/:email', getJoinedProjects);
+router.get('/stats/:email', getUserProjectStats);
 
 export default router;
