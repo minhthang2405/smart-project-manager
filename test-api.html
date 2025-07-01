@@ -1,0 +1,37 @@
+// Debug API endpoints
+const testAPI = async () => {
+    const baseURL = 'https://smart-project-manager-production.up.railway.app';
+    
+    try {
+        // Test health check
+        console.log('🔍 Testing health check...');
+        const healthResponse = await fetch(`${baseURL}/health`);
+        const healthData = await healthResponse.json();
+        console.log('Health:', healthData);
+        
+        // Test database connection info (if available)
+        console.log('🔍 Testing root endpoint...');
+        const rootResponse = await fetch(`${baseURL}/`);
+        const rootData = await rootResponse.json();
+        console.log('Root:', rootData);
+        
+        // Test if any user endpoints exist
+        console.log('🔍 Testing users endpoint...');
+        try {
+            const usersResponse = await fetch(`${baseURL}/users`);
+            if (usersResponse.ok) {
+                const usersData = await usersResponse.json();
+                console.log('Users from API:', usersData);
+            } else {
+                console.log('Users endpoint not available or protected');
+            }
+        } catch (e) {
+            console.log('Users endpoint error:', e.message);
+        }
+        
+    } catch (error) {
+        console.error('API Test Error:', error);
+    }
+};
+
+testAPI();

@@ -105,6 +105,31 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Debug endpoint to check database
+app.get('/debug/db', async (req, res) => {
+  try {
+    const userCount = await User.count();
+    const projectCount = await Project.count();
+    const taskCount = await Task.count();
+    
+    res.json({
+      database: 'connected',
+      counts: {
+        users: userCount,
+        projects: projectCount,
+        tasks: taskCount
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      database: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Routes
 app.use('/auth', authRoutes);
 app.use('/projects', projectRoutes);
