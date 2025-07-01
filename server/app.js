@@ -49,8 +49,13 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173', 
   'http://localhost:3000',
-  // Add your production frontend URL here
-  process.env.FRONTEND_URL
+  // Production frontend URLs
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
+  // Vercel preview and production domains
+  /\.vercel\.app$/,
+  // Allow any subdomain of vercel app
+  /https:\/\/.*\.vercel\.app$/
 ].filter(Boolean);
 
 app.use(cors({
