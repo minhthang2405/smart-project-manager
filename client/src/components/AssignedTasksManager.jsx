@@ -149,18 +149,21 @@ export default function AssignedTasksManager({ user }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Filter theo dự án */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
             Dự án:
           </label>
           <select
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
           >
-            <option value="all">Tất cả dự án</option>
+            <option value="all">📁 Tất cả dự án</option>
             {Object.keys(tasksByProject).map(projectName => (
               <option key={projectName} value={projectName}>
-                {projectName} ({tasksByProject[projectName].length})
+                📋 {projectName} ({tasksByProject[projectName].length})
               </option>
             ))}
           </select>
@@ -168,15 +171,18 @@ export default function AssignedTasksManager({ user }) {
 
         {/* Filter theo trạng thái */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             Trạng thái:
           </label>
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
           >
-            <option value="all">Tất cả trạng thái</option>
+            <option value="all">📋 Tất cả trạng thái</option>
             <option value="Chưa hoàn thành">⏳ Chưa làm ({taskStats['Chưa hoàn thành'] || 0})</option>
             <option value="Đang làm">🔄 Đang làm ({taskStats['Đang làm'] || 0})</option>
             <option value="Hoàn thành">✅ Hoàn thành ({taskStats['Hoàn thành'] || 0})</option>
@@ -185,15 +191,18 @@ export default function AssignedTasksManager({ user }) {
 
         {/* Filter theo độ khó */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
             Độ khó:
           </label>
           <select
             value={selectedDifficulty}
             onChange={(e) => setSelectedDifficulty(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
           >
-            <option value="all">Tất cả mức độ</option>
+            <option value="all">📊 Tất cả mức độ</option>
             <option value="easy">🟢 Dễ (1-3)</option>
             <option value="medium">🟡 Trung bình (4-7)</option>
             <option value="hard">🔴 Khó (8-10)</option>
@@ -202,13 +211,16 @@ export default function AssignedTasksManager({ user }) {
 
         {/* Sắp xếp */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
             Sắp xếp:
           </label>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
           >
             <option value="newest">🕒 Mới nhất</option>
             <option value="oldest">⏰ Cũ nhất</option>
