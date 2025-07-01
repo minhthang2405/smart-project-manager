@@ -9,7 +9,7 @@ export const createTransporter = () => {
         throw new Error('❌ Thiếu cấu hình EMAIL hoặc PASSWORD trong file .env');
     }
 
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         service: 'gmail',
         host: 'smtp.gmail.com',
         port: 587,
