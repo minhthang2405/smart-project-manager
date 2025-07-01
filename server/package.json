@@ -8,7 +8,8 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "init-db": "node init-db.js",
-    "build": "echo 'No build step needed for backend'"
+    "build": "echo 'No build step needed for backend'",
+    "debug-db": "node debug-db-connection.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

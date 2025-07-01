@@ -98,36 +98,83 @@ app.use('/', taskRoutes);
 app.use('/users', userRoutes);
 app.use('/invitations', invitationRoutes);
 
-// Start server with email test
+// Start server with graceful error handling
 const startServer = async () => {
     try {
         console.log('📊 Starting Smart Project Management Server...');
+        console.log('🔍 Environment:', process.env.NODE_ENV || 'development');
+        console.log('🔍 Port:', process.env.PORT || 5000);
+        console.log('🔍 Database URL configured:', !!(process.env.DATABASE_URL || process.env.MYSQL_URL));
         
-        // Test database connection
-        await sequelize.authenticate();
-        console.log('✅ Database connected successfully.');
+        // Test database connection with retry
+        let dbConnected = false;
+        let retries = 3;
         
-        // Sync database
-        await sequelize.sync({ alter: true });
-        console.log('✅ Database synchronized successfully.');
+        while (!dbConnected && retries > 0) {
+            try {
+                await sequelize.authenticate();
+                console.log('✅ Database connected successfully.');
+                dbConnected = true;
+            } catch (dbError) {
+                retries--;
+                console.log(`⚠️ Database connection failed. Retries left: ${retries}`);
+                if (retries === 0) {
+                    console.error('❌ Database connection failed after retries:', dbError.message);
+                    // Continue without database for now
+                    console.log('⚠️ Starting server without database connection...');
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s before retry
+                }
+            }
+        }
         
-        // Test email connection
+        // Sync database only if connected
+        if (dbConnected) {
+            try {
+                await sequelize.sync({ alter: true });
+                console.log('✅ Database synchronized successfully.');
+            } catch (syncError) {
+                console.error('⚠️ Database sync failed:', syncError.message);
+            }
+        }
+        
+        // Test email connection (non-blocking)
         console.log('📧 Testing email connection...');
-        const emailWorking = await testEmailConnection();
-        if (emailWorking) {
-            console.log('✅ Email service is ready!');
-        } else {
-            console.log('⚠️ Email service has issues - check configuration');
+        try {
+            const emailTestPromise = testEmailConnection();
+            const emailWorking = await Promise.race([
+                emailTestPromise,
+                new Promise(resolve => setTimeout(() => resolve(false), 5000)) // 5s timeout
+            ]);
+            
+            if (emailWorking) {
+                console.log('✅ Email service is ready!');
+            } else {
+                console.log('⚠️ Email service timeout or has issues - but server will continue');
+            }
+        } catch (emailError) {
+            console.log('⚠️ Email test failed:', emailError.message, '- but server will continue');
         }
         
         const PORT = process.env.PORT || 5000;
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on http://localhost:${PORT}`);
-            console.log(`📧 Test email endpoint: http://localhost:${PORT}/invitations/test-email`);
+        const server = app.listen(PORT, '0.0.0.0', () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+            console.log(`📧 Health check: /health`);
+            console.log(`📧 API root: /`);
+        });
+        
+        // Graceful shutdown
+        process.on('SIGTERM', () => {
+            console.log('👋 SIGTERM received, shutting down gracefully');
+            server.close(() => {
+                console.log('✅ Process terminated');
+                process.exit(0);
+            });
         });
         
     } catch (error) {
         console.error('❌ Unable to start server:', error);
+        console.error('Stack trace:', error.stack);
         process.exit(1);
     }
 };
