@@ -122,7 +122,7 @@ export default function AssignedTasksManager({ user }) {
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200 mb-8">
       <h2 className="text-2xl font-bold text-indigo-700 mb-6 flex items-center gap-2">
-        <span className="text-indigo-600">▣</span> Task Đã Giao
+        <span className="text-indigo-600">📋</span> Task Đã Giao
       </h2>
 
       {error && (
@@ -150,7 +150,7 @@ export default function AssignedTasksManager({ user }) {
         {/* Filter theo dự án */}
         <div>
           <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <span className="text-indigo-600 font-semibold">♦</span>
+            <span className="text-indigo-600 font-semibold">📁</span>
             Dự án:
           </label>
           <select
@@ -158,10 +158,10 @@ export default function AssignedTasksManager({ user }) {
             onChange={(e) => setSelectedProject(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
           >
-            <option value="all">▷ Tất cả dự án</option>
+            <option value="all">📂 Tất cả dự án</option>
             {Object.keys(tasksByProject).map(projectName => (
               <option key={projectName} value={projectName}>
-                • {projectName} ({tasksByProject[projectName].length})
+                📋 {projectName} ({tasksByProject[projectName].length})
               </option>
             ))}
           </select>
@@ -170,7 +170,7 @@ export default function AssignedTasksManager({ user }) {
         {/* Filter theo trạng thái */}
         <div>
           <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <span className="text-indigo-600 font-semibold">◉</span>
+            <span className="text-indigo-600 font-semibold">🔄</span>
             Trạng thái:
           </label>
           <select
@@ -178,17 +178,17 @@ export default function AssignedTasksManager({ user }) {
             onChange={(e) => setSelectedStatus(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
           >
-            <option value="all">▷ Tất cả trạng thái</option>
-            <option value="Chưa hoàn thành">○ Chưa làm ({taskStats['Chưa hoàn thành'] || 0})</option>
-            <option value="Đang làm">◐ Đang làm ({taskStats['Đang làm'] || 0})</option>
-            <option value="Hoàn thành">● Hoàn thành ({taskStats['Hoàn thành'] || 0})</option>
+            <option value="all">📋 Tất cả trạng thái</option>
+            <option value="Chưa hoàn thành">⏳ Chưa làm ({taskStats['Chưa hoàn thành'] || 0})</option>
+            <option value="Đang làm">🔄 Đang làm ({taskStats['Đang làm'] || 0})</option>
+            <option value="Hoàn thành">✅ Hoàn thành ({taskStats['Hoàn thành'] || 0})</option>
           </select>
         </div>
 
         {/* Filter theo độ khó */}
         <div>
           <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <span className="text-indigo-600 font-semibold">⬢</span>
+            <span className="text-indigo-600 font-semibold">🎯</span>
             Độ khó:
           </label>
           <select
@@ -196,17 +196,17 @@ export default function AssignedTasksManager({ user }) {
             onChange={(e) => setSelectedDifficulty(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
           >
-            <option value="all">▷ Tất cả mức độ</option>
-            <option value="easy">▲ Dễ (1-3)</option>
-            <option value="medium">▼ Trung bình (4-7)</option>
-            <option value="hard">♦ Khó (8-10)</option>
+            <option value="all">📊 Tất cả mức độ</option>
+            <option value="easy">💚 Dễ (1-3)</option>
+            <option value="medium">💙 Trung bình (4-7)</option>
+            <option value="hard">❤️ Khó (8-10)</option>
           </select>
         </div>
 
         {/* Sắp xếp */}
         <div>
           <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <span className="text-indigo-600 font-semibold">↕</span>
+            <span className="text-indigo-600 font-semibold">🔀</span>
             Sắp xếp:
           </label>
           <select
@@ -214,11 +214,11 @@ export default function AssignedTasksManager({ user }) {
             onChange={(e) => setSortBy(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
           >
-            <option value="newest">↓ Mới nhất</option>
-            <option value="oldest">↑ Cũ nhất</option>
-            <option value="deadline">⟨ Gần deadline</option>
-            <option value="difficulty">▲ Độ khó cao</option>
-            <option value="title">A-Z Tên A-Z</option>
+            <option value="newest">🕒 Mới nhất</option>
+            <option value="oldest">⏰ Cũ nhất</option>
+            <option value="deadline">📅 Gần deadline</option>
+            <option value="difficulty">⚡ Độ khó cao</option>
+            <option value="title">🔤 Tên A-Z</option>
           </select>
         </div>
       </div>
@@ -250,7 +250,7 @@ export default function AssignedTasksManager({ user }) {
       {/* Danh sách task */}
       {sortedTasks.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          <div className="text-4xl mb-4">▢</div>
+          <div className="text-4xl mb-4">📋</div>
           <p>
             {filteredTasks.length === 0 && assignedTasks.length > 0 
               ? 'Không có task nào phù hợp với bộ lọc.' 
@@ -328,7 +328,7 @@ export default function AssignedTasksManager({ user }) {
           disabled={loading}
           className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Đang tải...' : '↻ Làm mới'}
+          {loading ? 'Đang tải...' : '🔄 Làm mới'}
         </button>
       </div>
     </div>
