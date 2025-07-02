@@ -5,7 +5,8 @@ import {
   getProjects, 
   getProjectById,
   getJoinedProjects,
-  getUserProjectStats 
+  getUserProjectStats,
+  debugProjectMembers
 } from '../controllers/project.controller.js';
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.post('/', createProject);
 router.post('/:id/members', addMember);
 router.get('/', getProjects);
 router.get('/:id', getProjectById);
+router.get('/debug/members', debugProjectMembers);
 
 // Member routes
 router.get('/joined/:email', getJoinedProjects);

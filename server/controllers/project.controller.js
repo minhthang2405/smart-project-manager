@@ -194,3 +194,63 @@ export const getUserProjectStats = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+// Debug endpoint to check project members
+export const debugProjectMembers = async (req, res) => {
+    try {
+        console.log('🔍 DEBUG: Checking project members data');
+        
+        // Get all projects
+        const allProjects = await Project.findAll();
+        console.log('📋 All projects:', allProjects.length);
+        
+        // Get all project members
+        const allMembers = await ProjectMember.findAll();
+        console.log('👥 All project members:', allMembers.length);
+        
+        // Get specific project by name
+        const meomeoProject = await Project.findOne({ 
+            where: { name: { [Op.like]: '%meomeo%' } }
+        });
+        
+        let meomeoData = null;
+        if (meomeoProject) {
+            const meomeoMembers = await ProjectMember.findAll({ 
+                where: { projectId: meomeoProject.id } 
+            });
+            meomeoData = {
+                project: meomeoProject.toJSON(),
+                members: meomeoMembers.map(m => m.toJSON())
+            };
+        }
+        
+        // Check specific user
+        const baoMembers = await ProjectMember.findAll({ 
+            where: { email: 'baoga271104@gmail.com' } 
+        });
+        
+        const debugData = {
+            totalProjects: allProjects.length,
+            totalMembers: allMembers.length,
+            meomeoProject: meomeoData,
+            baoMemberships: baoMembers.map(m => m.toJSON()),
+            allProjects: allProjects.map(p => ({
+                id: p.id,
+                name: p.name,
+                owner: p.owner
+            })),
+            allMembers: allMembers.map(m => ({
+                id: m.id,
+                projectId: m.projectId,
+                email: m.email
+            }))
+        };
+        
+        console.log('🔍 Debug data:', JSON.stringify(debugData, null, 2));
+        res.json(debugData);
+        
+    } catch (error) {
+        console.error('❌ Debug error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
