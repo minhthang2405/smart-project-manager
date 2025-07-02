@@ -60,7 +60,7 @@ router.post('/create-test-invitation', async (req, res) => {
             expiresAt
         });
 
-        const testUrl = `http://localhost:5173/invitation?token=${inviteToken}&action=accept`;
+        const testUrl = `${process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173'}/invitation?token=${inviteToken}&action=accept`;
         
         res.json({ 
             message: 'Tạo invitation test thành công!',

@@ -85,7 +85,7 @@ export const createTask = async (req, res) => {
                         </div>
                         <p>Vui lòng đăng nhập vào hệ thống để xem chi tiết và cập nhật tiến độ.</p>
                         <div style="text-align: center; margin: 30px 0;">
-                            <a href="http://localhost:5173/" style="background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                            <a href="${process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173'}" style="background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
                                 🚀 Truy cập hệ thống
                             </a>
                         </div>
